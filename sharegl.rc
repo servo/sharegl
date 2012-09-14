@@ -1,0 +1,10 @@
+#[crate_type = "lib"];
+
+extern mod geom;
+
+mod base;
+
+#[cfg(target_os="macos")]
+#[path="macos.rs"]
+mod platform;
+
