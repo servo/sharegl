@@ -6,8 +6,8 @@ use mod opengles::cgl;
 use mod opengles::gl2;
 
 use core_foundation::base::CFTypeOps;
+use core::cast::transmute;
 use core::ptr::{null, to_unsafe_ptr};
-use core::unsafe::transmute;
 use geom::size::Size2D;
 use io_surface::{IOSurface, kIOSurfaceBytesPerElement, kIOSurfaceBytesPerRow, kIOSurfaceHeight};
 use io_surface::{kIOSurfaceIsGlobal, kIOSurfaceWidth};
