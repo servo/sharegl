@@ -142,8 +142,6 @@ impl MacContext : ShareContext {
 
     fn flush(&self) {
         gl2::finish();
-        gl2::bind_framebuffer(FRAMEBUFFER, 0);
-        gl2::finish();
     }
 
     fn id() -> int {
