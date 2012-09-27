@@ -26,9 +26,9 @@ use base::ShareContext;
 #[nolink]
 extern {}
 
-type Context = MacContext;
+pub type Context = MacContext;
 
-struct MacContext {
+pub struct MacContext {
     surface: IOSurface,
     framebuffer: GLuint,
     texture: GLuint
@@ -36,7 +36,7 @@ struct MacContext {
     // FIXME: Needs drop.
 }
 
-fn init_cgl() -> CGLContextObj {
+pub fn init_cgl() -> CGLContextObj {
     // FIXME: We should expose some higher-level, safe abstractions inside the CGL module.
     unsafe {
         // Choose a pixel format.
@@ -65,7 +65,7 @@ fn init_cgl() -> CGLContextObj {
     }
 }
 
-fn init_surface(+size: Size2D<int>) -> IOSurface {
+pub fn init_surface(+size: Size2D<int>) -> IOSurface {
     use number = core_foundation::number::CFNumber::new_number;
     use string = core_foundation::string::CFString::wrap;
     use true_value = core_foundation::boolean::CFBoolean::true_value;
@@ -79,7 +79,7 @@ fn init_surface(+size: Size2D<int>) -> IOSurface {
     ]))
 }
 
-fn init_texture() -> GLuint {
+pub fn init_texture() -> GLuint {
     gl2::enable(TEXTURE_RECTANGLE_ARB);
 
     let texture = gl2::gen_textures(1)[0];
@@ -92,7 +92,7 @@ fn init_texture() -> GLuint {
 }
 
 // Assumes the texture is already bound via gl2::bind_texture().
-fn bind_surface_to_texture(context: &CGLContextObj, surface: &IOSurface, +size: Size2D<int>) {
+pub fn bind_surface_to_texture(context: &CGLContextObj, surface: &IOSurface, +size: Size2D<int>) {
     // FIXME: There should be safe wrappers for this.
     unsafe {
         let gl_error = CGLTexImageIOSurface2D(*context,
@@ -108,7 +108,7 @@ fn bind_surface_to_texture(context: &CGLContextObj, surface: &IOSurface, +size: 
     }
 }
 
-fn bind_texture_to_framebuffer(texture: GLuint) {
+pub fn bind_texture_to_framebuffer(texture: GLuint) {
     gl2::bind_texture(TEXTURE_RECTANGLE_ARB, 0);
     gl2::framebuffer_texture_2d(FRAMEBUFFER, COLOR_ATTACHMENT0, TEXTURE_RECTANGLE_ARB, texture, 0);
     assert gl2::check_framebuffer_status(FRAMEBUFFER) == FRAMEBUFFER_COMPLETE;

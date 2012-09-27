@@ -4,11 +4,11 @@
 
 extern mod geom;
 
-mod base;
+pub mod base;
 
 #[cfg(target_os="macos")]
 #[path="macos.rs"]
-mod platform;
+pub mod platform;
 
 #[cfg(target_os="linux")]
 #[path="dummy.rs"]
