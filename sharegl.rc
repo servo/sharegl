@@ -10,3 +10,10 @@ mod base;
 #[path="macos.rs"]
 mod platform;
 
+#[cfg(target_os="linux")]
+#[path="dummy.rs"]
+mod platform;
+
+#[cfg(target_os="windows")]
+#[path="dummy.rs"]
+mod platform;
