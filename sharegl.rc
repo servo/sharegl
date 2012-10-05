@@ -12,8 +12,8 @@ pub mod platform;
 
 #[cfg(target_os="linux")]
 #[path="dummy.rs"]
-mod platform;
+pub mod platform;
 
 #[cfg(target_os="windows")]
 #[path="dummy.rs"]
-mod platform;
+pub mod platform;

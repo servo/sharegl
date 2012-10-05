@@ -1,7 +1,7 @@
 use geom::size::Size2D;
 use base::ShareContext;
 
-type Context = DummyContext;
+pub type Context = DummyContext;
 
 struct DummyContext {
     unused: int
