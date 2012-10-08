@@ -115,7 +115,7 @@ pub fn bind_texture_to_framebuffer(texture: GLuint) {
 }
 
 impl MacContext : ShareContext {
-    static fn new(+size: Size2D<int>) -> MacContext {
+    static fn new(size: Size2D<int>) -> MacContext {
         // Initialize CGL.
         let context = init_cgl();
 
