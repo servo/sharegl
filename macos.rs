@@ -68,16 +68,18 @@ pub fn init_cgl() -> CGLContextObj {
 
 pub fn init_surface(+size: Size2D<int>) -> IOSurface {
     use cf = core_foundation;
+    use cf::boolean::{CFBooleanRef, CFBoolean};
+    use cf::number::{CFNumberRef, CFNumber};
     use number = cf::number::CFNumber::new;
-    use string = cf::string::CFString::wrap;
+    use string = cf::string::CFString::wrap_extern;
     use true_value = cf::boolean::CFBoolean::true_value;
 
     IOSurface::new_io_surface(&cf::dictionary::CFDictionary::new([
-        (string(kIOSurfaceWidth),           number(size.width as i32).as_type()),
-        (string(kIOSurfaceHeight),          number(size.height as i32).as_type()),
-        (string(kIOSurfaceBytesPerRow),     number(size.width as i32 * 4).as_type()),
-        (string(kIOSurfaceBytesPerElement), number(4i32).as_type()),
-        (string(kIOSurfaceIsGlobal),        true_value().as_type())
+        (string(kIOSurfaceWidth),           cf::base::as_CFType::<CFNumberRef, CFNumber>(number(size.width as i32))),
+        (string(kIOSurfaceHeight),          cf::base::as_CFType::<CFNumberRef, CFNumber>(number(size.height as i32))),
+        (string(kIOSurfaceBytesPerRow),     cf::base::as_CFType::<CFNumberRef, CFNumber>(number(size.width as i32 * 4))),
+        (string(kIOSurfaceBytesPerElement), cf::base::as_CFType::<CFNumberRef, CFNumber>(number(4i32))),
+        (string(kIOSurfaceIsGlobal),        cf::base::as_CFType::<CFBooleanRef, CFBoolean>(true_value()))
     ]))
 }
 
