@@ -5,7 +5,6 @@ extern mod opengles;
 use mod opengles::cgl;
 use mod opengles::gl2;
 
-use core_foundation::base::CFTypeOps;
 use core::cast::transmute;
 use core::ptr::{null, to_unsafe_ptr};
 use geom::size::Size2D;
@@ -72,14 +71,30 @@ pub fn init_surface(+size: Size2D<int>) -> IOSurface {
     use cf::number::{CFNumberRef, CFNumber};
     use number = cf::number::CFNumber::new;
     use string = cf::string::CFString::wrap_extern;
-    use true_value = cf::boolean::CFBoolean::true_value;
 
-    IOSurface::new_io_surface(&cf::dictionary::CFDictionary::new([
-        (string(kIOSurfaceWidth),           cf::base::as_CFType::<CFNumberRef, CFNumber>(number(size.width as i32))),
-        (string(kIOSurfaceHeight),          cf::base::as_CFType::<CFNumberRef, CFNumber>(number(size.height as i32))),
-        (string(kIOSurfaceBytesPerRow),     cf::base::as_CFType::<CFNumberRef, CFNumber>(number(size.width as i32 * 4))),
-        (string(kIOSurfaceBytesPerElement), cf::base::as_CFType::<CFNumberRef, CFNumber>(number(4i32))),
-        (string(kIOSurfaceIsGlobal),        cf::base::as_CFType::<CFBooleanRef, CFBoolean>(true_value()))
+    // TODO: dictionary constructor should be less ridiculous.
+    // Or, we could add bindings for mutable dictionaries.
+    let k_width = string(kIOSurfaceWidth);
+    let v_width = number(size.width as i32);
+
+    let k_height = string(kIOSurfaceHeight);
+    let v_height = number(size.height as i32);
+
+    let k_bytes_per_row = string(kIOSurfaceBytesPerRow);
+    let v_bytes_per_row = number(size.width as i32 * 4);
+
+    let k_bytes_per_elem = string(kIOSurfaceBytesPerElement);
+    let v_bytes_per_elem = number(4i32);
+
+    let k_is_global = string(kIOSurfaceIsGlobal);
+    let v_is_global = CFBoolean::true_value();
+
+    io_surface::new(&cf::dictionary::CFDictionary::new([
+        (*k_width.borrow_ref(),          *v_width.borrow_type_ref()),
+        (*k_height.borrow_ref(),         *v_height.borrow_type_ref()),
+        (*k_bytes_per_row.borrow_ref(),  *v_bytes_per_row.borrow_type_ref()),
+        (*k_bytes_per_elem.borrow_ref(), *v_bytes_per_elem.borrow_type_ref()),
+        (*k_is_global.borrow_ref(),      *v_is_global.borrow_type_ref()),
     ]))
 }
 
