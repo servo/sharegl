@@ -89,7 +89,7 @@ pub fn init_surface(+size: Size2D<int>) -> IOSurface {
     let k_is_global = string(kIOSurfaceIsGlobal);
     let v_is_global = CFBoolean::true_value();
 
-    io_surface::new(&platform::core_foundation::dictionary::CFDictionary::new([
+    io_surface::new(&core_foundation::dictionary::CFDictionary::new([
         (*k_width.borrow_ref(),          *v_width.borrow_type_ref()),
         (*k_height.borrow_ref(),         *v_height.borrow_type_ref()),
         (*k_bytes_per_row.borrow_ref(),  *v_bytes_per_row.borrow_type_ref()),
