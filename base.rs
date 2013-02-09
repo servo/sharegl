@@ -2,7 +2,7 @@ use geom::size::Size2D;
 
 pub trait ShareContext {
     // Creates a new context for GL object sharing.
-    static fn new(size: Size2D<int>) -> self;
+    static fn new(size: Size2D<int>) -> Self;
 
     // Flushes the context.
     fn flush(&self);
