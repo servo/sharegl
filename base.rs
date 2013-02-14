@@ -12,3 +12,6 @@ pub trait ShareContext {
     fn id() -> int;
 }
 
+#[test]
+fn smoke() {}
+
