@@ -133,7 +133,7 @@ pub fn bind_texture_to_framebuffer(texture: GLuint) {
     assert gl2::check_framebuffer_status(FRAMEBUFFER) == FRAMEBUFFER_COMPLETE;
 }
 
-impl MacContext : ShareContext {
+impl ShareContext for MacContext {
     static fn new(size: Size2D<int>) -> MacContext {
         // Initialize CGL.
         let context = init_cgl();
@@ -153,7 +153,7 @@ impl MacContext : ShareContext {
         bind_texture_to_framebuffer(texture);
 
         MacContext {
-            surface: move surface,
+            surface: surface,
             framebuffer: framebuffer,
             texture: texture
         }
