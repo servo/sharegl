@@ -17,7 +17,7 @@ impl ShareContext for DummyContext {
     fn flush(&self) {
     }
 
-    fn id() -> int {
+    fn id(&self) -> int {
         0
     }
 }

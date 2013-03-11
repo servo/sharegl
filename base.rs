@@ -9,7 +9,7 @@ pub trait ShareContext {
 
     // Returns the platform-specific ID that can be passed to other processes to access the shared
     // resources.
-    fn id() -> int;
+    fn id(&self) -> int;
 }
 
 #[test]
