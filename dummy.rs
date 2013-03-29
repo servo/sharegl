@@ -8,7 +8,7 @@ struct DummyContext {
 }
 
 impl ShareContext for DummyContext {
-    static fn new(_size: Size2D<int>) -> DummyContext {
+    fn new(_size: Size2D<int>) -> DummyContext {
         DummyContext {
             unused: 0
         }
