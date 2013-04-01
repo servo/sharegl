@@ -46,20 +46,20 @@ pub fn init_cgl() -> CGLContextObj {
         let gl_error = CGLChoosePixelFormat(transmute(&attributes[0]),
                                             to_unsafe_ptr(&pixel_format),
                                             to_unsafe_ptr(&pixel_format_count));
-        fail_unless!(gl_error == kCGLNoError);
+        assert!(gl_error == kCGLNoError);
 
         // Create the context.
         let cgl_context = null();
         let gl_error = CGLCreateContext(pixel_format, null(), to_unsafe_ptr(&cgl_context));
-        fail_unless!(gl_error == kCGLNoError);
+        assert!(gl_error == kCGLNoError);
 
         // Set the context.
         let gl_error = CGLSetCurrentContext(cgl_context);
-        fail_unless!(gl_error == kCGLNoError);
+        assert!(gl_error == kCGLNoError);
 
         // Lock the context.
         let gl_error = CGLLockContext(cgl_context);
-        fail_unless!(gl_error == kCGLNoError);
+        assert!(gl_error == kCGLNoError);
 
         return cgl_context;
     }
@@ -122,14 +122,14 @@ pub fn bind_surface_to_texture(context: &CGLContextObj, surface: &IOSurface, siz
                                               UNSIGNED_INT_8_8_8_8_REV,
                                               transmute(copy surface.obj),
                                               0);
-        fail_unless!(gl_error == kCGLNoError);
+        assert!(gl_error == kCGLNoError);
     }
 }
 
 pub fn bind_texture_to_framebuffer(texture: GLuint) {
     gl2::bind_texture(TEXTURE_RECTANGLE_ARB, 0);
     gl2::framebuffer_texture_2d(FRAMEBUFFER, COLOR_ATTACHMENT0, TEXTURE_RECTANGLE_ARB, texture, 0);
-    fail_unless!(gl2::check_framebuffer_status(FRAMEBUFFER) == FRAMEBUFFER_COMPLETE);
+    assert!(gl2::check_framebuffer_status(FRAMEBUFFER) == FRAMEBUFFER_COMPLETE);
 }
 
 impl ShareContext for MacContext {
