@@ -2,7 +2,6 @@ pub extern mod core_foundation;
 pub extern mod io_surface;
 pub extern mod opengles;
 
-use mod platform::opengles::cgl;
 use mod platform::opengles::gl2;
 
 use core::cast::transmute;
@@ -10,6 +9,7 @@ use core::ptr::{null, to_unsafe_ptr};
 use geom::size::Size2D;
 use platform::io_surface::{IOSurface, kIOSurfaceBytesPerElement, kIOSurfaceBytesPerRow};
 use platform::io_surface::{kIOSurfaceHeight, kIOSurfaceIsGlobal, kIOSurfaceWidth};
+use platform::io_surface::IOSurfaceMethods;
 use platform::opengles::cgl::{CGLChoosePixelFormat, CGLContextObj, CGLCreateContext};
 use platform::opengles::cgl::{CGLLockContext, CGLSetCurrentContext, CGLTexImageIOSurface2D};
 use platform::opengles::cgl::{kCGLNoError, kCGLPFACompliant, kCGLPFADoubleBuffer};
@@ -46,29 +46,28 @@ pub fn init_cgl() -> CGLContextObj {
         let gl_error = CGLChoosePixelFormat(transmute(&attributes[0]),
                                             to_unsafe_ptr(&pixel_format),
                                             to_unsafe_ptr(&pixel_format_count));
-        fail_unless!(gl_error == kCGLNoError);
+        assert!(gl_error == kCGLNoError);
 
         // Create the context.
         let cgl_context = null();
         let gl_error = CGLCreateContext(pixel_format, null(), to_unsafe_ptr(&cgl_context));
-        fail_unless!(gl_error == kCGLNoError);
+        assert!(gl_error == kCGLNoError);
 
         // Set the context.
         let gl_error = CGLSetCurrentContext(cgl_context);
-        fail_unless!(gl_error == kCGLNoError);
+        assert!(gl_error == kCGLNoError);
 
         // Lock the context.
         let gl_error = CGLLockContext(cgl_context);
-        fail_unless!(gl_error == kCGLNoError);
+        assert!(gl_error == kCGLNoError);
 
         return cgl_context;
     }
 }
 
 
-pub fn init_surface(+size: Size2D<int>) -> IOSurface {
-    use platform::core_foundation::boolean::{CFBooleanRef, CFBoolean};
-    use platform::core_foundation::number::{CFNumberRef, CFNumber};
+pub fn init_surface(size: Size2D<int>) -> IOSurface {
+    use platform::core_foundation::boolean::CFBoolean;
     use number = platform::core_foundation::number::CFNumber::new;
     use string = platform::core_foundation::string::CFString::wrap_extern;
 
@@ -111,7 +110,7 @@ pub fn init_texture() -> GLuint {
 }
 
 // Assumes the texture is already bound via gl2::bind_texture().
-pub fn bind_surface_to_texture(context: &CGLContextObj, surface: &IOSurface, +size: Size2D<int>) {
+pub fn bind_surface_to_texture(context: &CGLContextObj, surface: &IOSurface, size: Size2D<int>) {
     // FIXME: There should be safe wrappers for this.
     unsafe {
         let gl_error = CGLTexImageIOSurface2D(*context,
@@ -123,18 +122,18 @@ pub fn bind_surface_to_texture(context: &CGLContextObj, surface: &IOSurface, +si
                                               UNSIGNED_INT_8_8_8_8_REV,
                                               transmute(copy surface.obj),
                                               0);
-        fail_unless!(gl_error == kCGLNoError);
+        assert!(gl_error == kCGLNoError);
     }
 }
 
 pub fn bind_texture_to_framebuffer(texture: GLuint) {
     gl2::bind_texture(TEXTURE_RECTANGLE_ARB, 0);
     gl2::framebuffer_texture_2d(FRAMEBUFFER, COLOR_ATTACHMENT0, TEXTURE_RECTANGLE_ARB, texture, 0);
-    fail_unless!(gl2::check_framebuffer_status(FRAMEBUFFER) == FRAMEBUFFER_COMPLETE);
+    assert!(gl2::check_framebuffer_status(FRAMEBUFFER) == FRAMEBUFFER_COMPLETE);
 }
 
 impl ShareContext for MacContext {
-    static fn new(size: Size2D<int>) -> MacContext {
+    fn new(size: Size2D<int>) -> MacContext {
         // Initialize CGL.
         let context = init_cgl();
 
@@ -163,7 +162,7 @@ impl ShareContext for MacContext {
         gl2::finish();
     }
 
-    fn id() -> int {
+    fn id(&self) -> int {
         self.surface.get_id() as int
     }
 }
