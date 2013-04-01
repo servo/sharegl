@@ -67,7 +67,7 @@ pub fn init_cgl() -> CGLContextObj {
 
 
 pub fn init_surface(size: Size2D<int>) -> IOSurface {
-    use platform::core_foundation::boolean::{CFBooleanRef, CFBoolean};
+    use platform::core_foundation::boolean::CFBoolean;
     use number = platform::core_foundation::number::CFNumber::new;
     use string = platform::core_foundation::string::CFString::wrap_extern;
 
