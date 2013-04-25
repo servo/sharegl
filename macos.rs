@@ -11,7 +11,7 @@ pub extern mod core_foundation;
 pub extern mod io_surface;
 pub extern mod opengles;
 
-use mod platform::opengles::gl2;
+use platform::opengles::gl2;
 
 use core::cast::transmute;
 use core::ptr::{null, to_unsafe_ptr};
