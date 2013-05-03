@@ -78,7 +78,7 @@ pub fn init_cgl() -> CGLContextObj {
 pub fn init_surface(size: Size2D<int>) -> IOSurface {
     use platform::core_foundation::boolean::CFBoolean;
     use number = platform::core_foundation::number::CFNumber::new;
-    use string = platform::core_foundation::string::CFString::wrap_extern;
+    use string = platform::core_foundation::string::CFString::wrap_shared;
 
     // TODO: dictionary constructor should be less ridiculous.
     // Or, we could add bindings for mutable dictionaries.
@@ -98,11 +98,11 @@ pub fn init_surface(size: Size2D<int>) -> IOSurface {
     let v_is_global = CFBoolean::true_value();
 
     io_surface::new(&core_foundation::dictionary::CFDictionary::new([
-        (*k_width.borrow_ref(),          *v_width.borrow_type_ref()),
-        (*k_height.borrow_ref(),         *v_height.borrow_type_ref()),
-        (*k_bytes_per_row.borrow_ref(),  *v_bytes_per_row.borrow_type_ref()),
-        (*k_bytes_per_elem.borrow_ref(), *v_bytes_per_elem.borrow_type_ref()),
-        (*k_is_global.borrow_ref(),      *v_is_global.borrow_type_ref()),
+        (*k_width.contents.borrow_ref(),          *v_width.contents.borrow_type_ref()),
+        (*k_height.contents.borrow_ref(),         *v_height.contents.borrow_type_ref()),
+        (*k_bytes_per_row.contents.borrow_ref(),  *v_bytes_per_row.contents.borrow_type_ref()),
+        (*k_bytes_per_elem.contents.borrow_ref(), *v_bytes_per_elem.contents.borrow_type_ref()),
+        (*k_is_global.contents.borrow_ref(),      *v_is_global.contents.borrow_type_ref()),
     ]))
 }
 
