@@ -14,16 +14,24 @@
 extern mod std;
 extern mod geom;
 
+#[cfg(target_os="macos")]
+extern mod core_foundation;
+#[cfg(target_os="macos")]
+extern mod io_surface;
+#[cfg(target_os="macos")]
+extern mod opengles;
+
 pub mod base;
+pub mod context;
 
 #[cfg(target_os="macos")]
-#[path="macos.rs"]
+#[path="platform/macos.rs"]
 pub mod platform;
 
 #[cfg(target_os="linux")]
-#[path="dummy.rs"]
+#[path="platform/dummy.rs"]
 pub mod platform;
 
 #[cfg(target_os="windows")]
-#[path="dummy.rs"]
+#[path="platform/dummy.rs"]
 pub mod platform;
