@@ -13,8 +13,8 @@ pub extern mod opengles;
 
 use platform::opengles::gl2;
 
-use core::cast::transmute;
-use core::ptr::{null, to_unsafe_ptr};
+use std::cast::transmute;
+use std::ptr::{null, to_unsafe_ptr};
 use geom::size::Size2D;
 use platform::io_surface::{IOSurface, kIOSurfaceBytesPerElement, kIOSurfaceBytesPerRow};
 use platform::io_surface::{kIOSurfaceHeight, kIOSurfaceIsGlobal, kIOSurfaceWidth};
@@ -77,24 +77,24 @@ pub fn init_cgl() -> CGLContextObj {
 
 pub fn init_surface(size: Size2D<int>) -> IOSurface {
     use platform::core_foundation::boolean::CFBoolean;
-    use number = platform::core_foundation::number::CFNumber::new;
-    use string = platform::core_foundation::string::CFString::wrap_shared;
+    use platform::core_foundation::string::CFString;
+    use platform::core_foundation::number::CFNumber;
 
     // TODO: dictionary constructor should be less ridiculous.
     // Or, we could add bindings for mutable dictionaries.
-    let k_width = string(kIOSurfaceWidth);
-    let v_width = number(size.width as i32);
+    let k_width = CFString::wrap_shared(kIOSurfaceWidth);
+    let v_width = CFNumber::new(size.width as i32);
 
-    let k_height = string(kIOSurfaceHeight);
-    let v_height = number(size.height as i32);
+    let k_height = CFString::wrap_shared(kIOSurfaceHeight);
+    let v_height = CFNumber::new(size.height as i32);
 
-    let k_bytes_per_row = string(kIOSurfaceBytesPerRow);
-    let v_bytes_per_row = number(size.width as i32 * 4);
+    let k_bytes_per_row = CFString::wrap_shared(kIOSurfaceBytesPerRow);
+    let v_bytes_per_row = CFNumber::new(size.width as i32 * 4);
 
-    let k_bytes_per_elem = string(kIOSurfaceBytesPerElement);
-    let v_bytes_per_elem = number(4i32);
+    let k_bytes_per_elem = CFString::wrap_shared(kIOSurfaceBytesPerElement);
+    let v_bytes_per_elem = CFNumber::new(4i32);
 
-    let k_is_global = string(kIOSurfaceIsGlobal);
+    let k_is_global = CFString::wrap_shared(kIOSurfaceIsGlobal);
     let v_is_global = CFBoolean::true_value();
 
     io_surface::new(&core_foundation::dictionary::CFDictionary::new([
