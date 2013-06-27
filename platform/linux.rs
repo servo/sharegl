@@ -7,10 +7,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use core::cell::Cell;
-use core::libc::{c_char, c_int, c_uint, c_ulong, c_void};
+use context::GraphicsContextMethods;
+
+use core::cast::transmute;
+use core::libc::{c_char, c_int, c_long, c_uint, c_ulong, c_void};
 use core::ptr::null;
+use core::ptr;
 use std::arc::ARC;
+use std::arc;
 
 // Constants.
 
@@ -18,25 +22,27 @@ static GLX_RGBA: c_int = 4;
 static GLX_RED_SIZE: c_int = 8;
 static GLX_GREEN_SIZE: c_int = 9;
 static GLX_BLUE_SIZE: c_int = 10;
+static GLX_DEPTH_SIZE: c_int = 12;
 
-static ATTRIBUTES: [c_int, ..8] = [
+static ATTRIBUTES: [c_int, ..4] = [
     GLX_RGBA,
-    GLX_RED_SIZE, 1, 
-    GLX_GREEN_SIZE, 1,
-    GLX_BLUE_SIZE, 1,
+    GLX_DEPTH_SIZE, 24,
     0,
 ];
 
 // External bindings to Xlib.
 
+// Opaque structures.
 struct _XPrivate;
 struct _XrmHashBucketRec;
 struct Depth;
+struct GLXContextOpaque;
+struct Visual;
 
 // Sadly we need to copy some of this definition in here because the Xlib macros need to access it.
 struct Display {
-    ext_data: *XExtData;
-    private1: *_XPrivate;
+    ext_data: *XExtData,
+    private1: *_XPrivate,
     fd: c_int,
     private2: c_int,
     proto_major_version: c_int,
@@ -45,7 +51,7 @@ struct Display {
     private3: XID,
     private4: XID,
     private5: XID,
-    private6: XID,
+    private6: c_int,
     resource_alloc: *c_void,
     byte_order: c_int,
     bitmap_unit: c_int,
@@ -55,8 +61,8 @@ struct Display {
     pixmap_format: *ScreenFormat,
     private8: c_int,
     release: c_int,
-    private9: *XPrivate,
-    private10: *XPrivate,
+    private9: *_XPrivate,
+    private10: *_XPrivate,
     qlen: c_int,
     last_request_read: c_ulong,
     request: c_ulong,
@@ -68,12 +74,15 @@ struct Display {
     db: *_XrmHashBucketRec,
     private15: *c_void,
     display_name: *c_char,
+
+    // FIXME(pcwalton): These are needed for some reason...
+    pad: *c_void,
+    pad1: *c_void,
+
     default_screen: c_int,
     nscreens: c_int,
     screens: *Screen,
 }
-
-struct GLXContextOpaque;
 
 struct Screen {
     ext_data: *XExtData,
@@ -96,6 +105,7 @@ struct Screen {
     backing_store: c_int,
     save_unders: Bool,
     root_input_mask: c_long,
+    pad: *c_void,
 }
 
 struct ScreenFormat;
@@ -124,7 +134,7 @@ type GLXPixmap = c_uint;                // compatible with GLXDrawable
 type Pixmap = c_uint;
 type VisualID = c_ulong;
 type Window = c_uint;                   // compatible with Drawable
-type XID = c_ulong;
+type XID = c_uint;
 type XPointer = *c_void;
 
 #[link_args="-lX11"]
@@ -138,22 +148,32 @@ extern {
     fn glXCreateContext(dpy: *Display, vis: *XVisualInfo, shareList: GLXContext, direct: Bool)
                         -> GLXContext;
     fn glXCreateGLXPixmap(dpy: *Display, vis: *XVisualInfo, pixmap: Pixmap) -> GLXPixmap;
-    fn glXMakeCurrent(dpy: *Display, drawable: GLXDrawable, context: GLXContext) -> Bool;
+    fn glXMakeContextCurrent(dpy: *Display, draw: GLXDrawable, read: GLXDrawable, ctx: GLXContext)
+                             -> Bool;
 }
 
 // X11 macros
 
-fn DefaultScreen(dpy: *Display) -> *Screen {
+fn DefaultScreen(dpy: *Display) -> c_int {
     unsafe {
-        dpy.default_screen
+        let orig = dpy as uint;
+        let off: uint = transmute(&(*dpy).default_screen);
+        let default_screen = (*dpy).default_screen;
+        default_screen
     }
 }
 fn RootWindow(dpy: *Display, scr: c_int) -> Window {
-    ScreenOfDisplay(dpy, scr).root
+    unsafe {
+        let screen = ScreenOfDisplay(dpy, scr);
+        let root_window = (*ScreenOfDisplay(dpy, scr)).root;
+        root_window
+    }
 }
 fn ScreenOfDisplay(dpy: *Display, scr: c_int) -> *Screen {
     unsafe {
-        &dpy.screens[scr]
+        let orig = dpy as uint;
+        let off: uint = transmute(&(*dpy).screens);
+        *ptr::offset(&(*dpy).screens, scr as uint)
     }
 }
 
@@ -163,41 +183,60 @@ fn ScreenOfDisplay(dpy: *Display, scr: c_int) -> *Screen {
 pub struct GraphicsContext {
     priv display: *Display,
     priv pixmap: GLXPixmap,
-    priv context: GLXContext,
+    priv context: ARC<GLXContext>,
 }
 
 impl GraphicsContext {
-    fn create_display_and_pixmap() -> (Display, GLXPixmap) {
+    // Creates a new, possibly shared, GLX context.
+    fn new_possibly_shared(share_context: Option<GraphicsContext>) -> GraphicsContext {
+        let (display, visual, pixmap) = GraphicsContext::create_display_visual_and_pixmap();
+
+        unsafe {
+            let context = match share_context {
+                None => glXCreateContext(display, visual, null(), 1),
+                Some(share_context) => {
+                    let native_share_context = share_context.native();
+                    glXCreateContext(display, visual, *arc::get(&native_share_context), 1)
+                }
+            };
+
+            assert!(context != null());
+
+            GraphicsContext {
+                display: display,
+                pixmap: pixmap,
+                context: ARC(context),
+            }
+        }
+    }
+
+    fn create_display_visual_and_pixmap() -> (*Display, *XVisualInfo, GLXPixmap) {
         unsafe {
             // Get a connection.
             let display = XOpenDisplay(0);
 
             // Get an appropriate visual.
             let visual = glXChooseVisual(display, DefaultScreen(display), &ATTRIBUTES[0]);
-            assert!(visual != null());
 
             // Create the pixmap.
-            let root_window = RootWindow(display, visual.screen);
-            let pixmap = XCreatePixmap(display, root_window, 500, 500, visual.depth);
+            let root_window = RootWindow(display, DefaultScreen(display));
+            let pixmap = XCreatePixmap(display, root_window, 10, 10, 24);
             let glx_pixmap = glXCreateGLXPixmap(display, visual, pixmap);
 
-            (display, glx_pixmap)
+            debug!("XCreatePixmap returned %?, glXCreateGLXPixmap returned %?",
+                   pixmap,
+                   glx_pixmap);
+
+            (display, visual, glx_pixmap)
         }
     }
 }
 
-impl GraphicsContextMethods<ARC<GLXContext>> for GraphicsContext {
-    /// Returns the current graphics context.
-    ///
-    /// X11 does not seem to support this functionality, so this fails.
-    fn current() -> GraphicsContext {
-        fail!("GraphicsContext::current() unsupported on X11")
-    }
-
+impl GraphicsContextMethods<GLXContext> for GraphicsContext {
     /// Wraps the given instance of the native GLX graphics context, bumping the reference count in
     /// the process.
     fn wrap(instance: ARC<GLXContext>) -> GraphicsContext {
-        let (display, pixmap) = GraphicsContext::create_display_and_pixmap();
+        let (display, _, pixmap) = GraphicsContext::create_display_visual_and_pixmap();
         GraphicsContext {
             display: display,
             pixmap: pixmap,
@@ -212,24 +251,21 @@ impl GraphicsContextMethods<ARC<GLXContext>> for GraphicsContext {
 
     /// Creates a new offscreen 3D graphics context.
     fn new() -> GraphicsContext {
-        let (display, pixmap) = GraphicsContext::create_display_and_pixmap();
+        GraphicsContext::new_possibly_shared(None)
+    }
 
-        unsafe {
-            let context = glXCreateContext(display, visual, 0, 0);
-            assert!(context != null());
-
-            GraphicsContext {
-                display: display,
-                pixmap: pixmap,
-                context: ARC(context),
-            }
-        }
+    /// Creates a new offscreen 3D graphics context shared with the given context.
+    fn new_shared(share_context: GraphicsContext) -> GraphicsContext {
+        GraphicsContext::new_possibly_shared(Some(share_context))
     }
 
     /// Makes this context the current context.
     fn make_current(&self) {
         unsafe {
-            let result = glXMakeCurrent(self.display, self.pixmap, self.context);
+            let result = glXMakeContextCurrent(self.display,
+                                               self.pixmap,
+                                               self.pixmap,
+                                               *arc::get(&self.context));
             assert!(result != 0);
         }
     }
