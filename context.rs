@@ -9,21 +9,23 @@
 
 //! A platform-independent interface to 3D graphics contexts.
 
+use std::arc::ARC;
+
 /// Platform-independent interface to 3D graphics contexts.
 pub trait GraphicsContextMethods<NativeContextType> {
-    /// Returns the current 3D graphics context, incrementing its reference count.
-    pub fn current() -> Self;
-
     /// Wraps the given instance of the native 3D context, incrementing its reference count.
-    pub fn wrap(instance: NativeContextType) -> Self;
+    fn wrap(instance: ARC<NativeContextType>) -> Self;
 
-    /// Returns the underlying native 3D context without modifying its reference count.
-    pub fn native(&self) -> NativeContextType;
+    /// Returns the underlying native 3D context.
+    fn native(&self) -> ARC<NativeContextType>;
 
     /// Creates a new offscreen 3D graphics context.
-    pub fn new() -> Self;
+    fn new() -> Self;
+
+    /// Creates a new offscreen 3D graphics context shared with the given context.
+    fn new_shared(share_context: Self) -> Self;
 
     /// Makes this context the current context, so that all graphics operations will go here.
-    pub fn make_current(&self);
+    fn make_current(&self);
 }
 

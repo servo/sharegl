@@ -16,15 +16,17 @@ use geom::size::Size2D;
 use io_surface::{IOSurface, kIOSurfaceBytesPerElement, kIOSurfaceBytesPerRow};
 use io_surface::{kIOSurfaceHeight, kIOSurfaceIsGlobal, kIOSurfaceWidth};
 use io_surface::IOSurfaceMethods;
-use opengles::cgl::{CGLChoosePixelFormat, CGLContextObj, CGLCreateContext, CGLGetCurrentContext};
-use opengles::cgl::{CGLReleaseContext, CGLRetainContext, CGLSetCurrentContext};
-use opengles::cgl::{CGLTexImageIOSurface2D, kCGLNoError, kCGLPFACompliant, kCGLPFADoubleBuffer};
+use opengles::cgl::{CGLChoosePixelFormat, CGLContextObj, CGLCreateContext, CGLReleaseContext};
+use opengles::cgl::{CGLSetCurrentContext, CGLTexImageIOSurface2D, kCGLNoError, kCGLPFACompliant};
+use opengles::cgl::{kCGLPFADoubleBuffer};
 use opengles::gl2::{BGRA, CLAMP_TO_EDGE, COLOR_ATTACHMENT0, FRAMEBUFFER};
 use opengles::gl2::{FRAMEBUFFER_COMPLETE, GLenum, GLint, GLsizei, GLuint, LINEAR};
 use opengles::gl2::{NEAREST, RGBA, TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER};
 use opengles::gl2::{TEXTURE_RECTANGLE_ARB, TEXTURE_WRAP_S, TEXTURE_WRAP_T};
 use opengles::gl2::{UNSIGNED_INT_8_8_8_8_REV};
 use opengles::gl2;
+use std::arc::ARC;
+use std::arc;
 
 // FIXME: This is not good.
 #[link_args="-framework IOSurface -framework CoreFoundation"]
@@ -33,33 +35,12 @@ extern {}
 
 /// Mac-specific interface to 3D graphics contexts.
 pub struct GraphicsContext {
-    contents: CGLContextObj
+    cgl_context: ARC<CGLContextObj>,
 }
 
-impl GraphicsContextMethods<CGLContextObj> for GraphicsContext {
-    /// Returns the current graphics context.
-    fn current() -> GraphicsContext {
-        unsafe {
-            GraphicsContextMethods::wrap(CGLGetCurrentContext())
-        }
-    }
-
-    /// Wraps the given instance of the native Core OpenGL graphics context.
-    fn wrap(instance: CGLContextObj) -> GraphicsContext {
-        unsafe {
-            GraphicsContext {
-                contents: CGLRetainContext(instance)
-            }
-        }
-    }
-
-    /// Returns the underlying native 3D context without modifying its reference count.
-    fn native(&self) -> CGLContextObj {
-        self.contents
-    }
-
-    /// Creates a new offscreen 3D graphics context.
-    fn new() -> GraphicsContext {
+impl GraphicsContext {
+    /// Returns a new context, possibly shared with another context.
+    fn new_possibly_shared(share_context: Option<GraphicsContext>) -> GraphicsContext {
         unsafe {
             // Choose a pixel format.
             let attributes = [ kCGLPFADoubleBuffer, kCGLPFACompliant, 0 ];
@@ -72,26 +53,50 @@ impl GraphicsContextMethods<CGLContextObj> for GraphicsContext {
 
             // Create the context.
             let cgl_context = null();
-            let gl_error = CGLCreateContext(pixel_format, null(), to_unsafe_ptr(&cgl_context));
+            let gl_error = match share_context {
+                None => CGLCreateContext(pixel_format, null(), &cgl_context),
+                Some(ref share_context) => {
+                    let native = share_context.native();
+                    CGLCreateContext(pixel_format, *arc::get(&native), &cgl_context)
+                }
+            };
             assert!(gl_error == kCGLNoError);
 
-            GraphicsContextMethods::wrap(cgl_context)
+            GraphicsContextMethods::wrap(ARC(cgl_context))
         }
+    }
+}
+
+impl GraphicsContextMethods<CGLContextObj> for GraphicsContext {
+    /// Wraps the given instance of the native Core OpenGL graphics context.
+    fn wrap(instance: ARC<CGLContextObj>) -> GraphicsContext {
+        unsafe {
+            GraphicsContext {
+                cgl_context: instance
+            }
+        }
+    }
+
+    /// Returns the underlying native 3D context without modifying its reference count.
+    fn native(&self) -> ARC<CGLContextObj> {
+        self.cgl_context.clone()
+    }
+
+    /// Creates a new offscreen 3D graphics context.
+    fn new() -> GraphicsContext {
+        GraphicsContext::new_possibly_shared(None)
+    }
+
+    /// Creates a new offscreen 3D graphics context shared with the given context.
+    fn new_shared(share_context: GraphicsContext) -> GraphicsContext {
+        GraphicsContext::new_possibly_shared(Some(share_context))
     }
 
     /// Makes this context the current context.
     fn make_current(&self) {
         unsafe {
-            let gl_error = CGLSetCurrentContext(self.contents);
+            let gl_error = CGLSetCurrentContext(*arc::get(&self.cgl_context));
             assert!(gl_error == kCGLNoError)
-        }
-    }
-}
-
-impl Drop for GraphicsContext {
-    fn finalize(&self) {
-        unsafe {
-            CGLReleaseContext(self.native())
         }
     }
 }
@@ -166,7 +171,8 @@ pub fn init_texture() -> GLuint {
 pub fn bind_surface_to_texture(context: &GraphicsContext, surface: &IOSurface, size: Size2D<int>) {
     // FIXME: There should be safe wrappers for this.
     unsafe {
-        let gl_error = CGLTexImageIOSurface2D(context.native(),
+        let native = context.native();
+        let gl_error = CGLTexImageIOSurface2D(*arc::get(&native),
                                               TEXTURE_RECTANGLE_ARB,
                                               RGBA as GLenum,
                                               size.width as GLsizei,

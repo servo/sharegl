@@ -29,7 +29,7 @@ pub mod context;
 pub mod platform;
 
 #[cfg(target_os="linux")]
-#[path="platform/dummy.rs"]
+#[path="platform/linux.rs"]
 pub mod platform;
 
 #[cfg(target_os="windows")]
