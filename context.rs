@@ -9,7 +9,7 @@
 
 //! A platform-independent interface to 3D graphics contexts.
 
-use std::arc::ARC;
+use extra::arc::ARC;
 
 /// Platform-independent interface to 3D graphics contexts.
 pub trait GraphicsContextMethods<NativeContextType> {

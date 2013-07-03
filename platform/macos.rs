@@ -10,13 +10,13 @@
 use base::ShareContext;
 use context::GraphicsContextMethods;
 
-use core::cast::transmute;
-use core::ptr::{null, to_unsafe_ptr};
+use extra::arc::ARC;
+use extra::arc;
 use geom::size::Size2D;
 use io_surface::{IOSurface, kIOSurfaceBytesPerElement, kIOSurfaceBytesPerRow};
 use io_surface::{kIOSurfaceHeight, kIOSurfaceIsGlobal, kIOSurfaceWidth};
 use io_surface::IOSurfaceMethods;
-use opengles::cgl::{CGLChoosePixelFormat, CGLContextObj, CGLCreateContext, CGLReleaseContext};
+use opengles::cgl::{CGLChoosePixelFormat, CGLContextObj, CGLCreateContext};
 use opengles::cgl::{CGLSetCurrentContext, CGLTexImageIOSurface2D, kCGLNoError, kCGLPFACompliant};
 use opengles::cgl::{kCGLPFADoubleBuffer};
 use opengles::gl2::{BGRA, CLAMP_TO_EDGE, COLOR_ATTACHMENT0, FRAMEBUFFER};
@@ -25,8 +25,8 @@ use opengles::gl2::{NEAREST, RGBA, TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER};
 use opengles::gl2::{TEXTURE_RECTANGLE_ARB, TEXTURE_WRAP_S, TEXTURE_WRAP_T};
 use opengles::gl2::{UNSIGNED_INT_8_8_8_8_REV};
 use opengles::gl2;
-use std::arc::ARC;
-use std::arc;
+use std::cast::transmute;
+use std::ptr::{null, to_unsafe_ptr};
 
 // FIXME: This is not good.
 #[link_args="-framework IOSurface -framework CoreFoundation"]
@@ -57,7 +57,7 @@ impl GraphicsContext {
                 None => CGLCreateContext(pixel_format, null(), &cgl_context),
                 Some(ref share_context) => {
                     let native = share_context.native();
-                    CGLCreateContext(pixel_format, *arc::get(&native), &cgl_context)
+                    CGLCreateContext(pixel_format, *native.get(), &cgl_context)
                 }
             };
             assert!(gl_error == kCGLNoError);
@@ -95,7 +95,7 @@ impl GraphicsContextMethods<CGLContextObj> for GraphicsContext {
     /// Makes this context the current context.
     fn make_current(&self) {
         unsafe {
-            let gl_error = CGLSetCurrentContext(*arc::get(&self.cgl_context));
+            let gl_error = CGLSetCurrentContext(*self.cgl_context.get());
             assert!(gl_error == kCGLNoError)
         }
     }
@@ -124,26 +124,26 @@ pub fn init_cgl() -> GraphicsContext {
 
 pub fn init_surface(size: Size2D<int>) -> IOSurface {
     use core_foundation::boolean::CFBoolean;
+    use core_foundation::number::CFNumber;
+    use core_foundation::string::CFString;
     use core_foundation;
     use io_surface;
-    use number = core_foundation::number::CFNumber::new;
-    use string = core_foundation::string::CFString::wrap_shared;
 
     // TODO: dictionary constructor should be less ridiculous.
     // Or, we could add bindings for mutable dictionaries.
-    let k_width = string(kIOSurfaceWidth);
-    let v_width = number(size.width as i32);
+    let k_width = CFString::wrap_shared(kIOSurfaceWidth);
+    let v_width = CFNumber::new(size.width as i32);
 
-    let k_height = string(kIOSurfaceHeight);
-    let v_height = number(size.height as i32);
+    let k_height = CFString::wrap_shared(kIOSurfaceHeight);
+    let v_height = CFNumber::new(size.height as i32);
 
-    let k_bytes_per_row = string(kIOSurfaceBytesPerRow);
-    let v_bytes_per_row = number(size.width as i32 * 4);
+    let k_bytes_per_row = CFString::wrap_shared(kIOSurfaceBytesPerRow);
+    let v_bytes_per_row = CFNumber::new(size.width as i32 * 4);
 
-    let k_bytes_per_elem = string(kIOSurfaceBytesPerElement);
-    let v_bytes_per_elem = number(4i32);
+    let k_bytes_per_elem = CFString::wrap_shared(kIOSurfaceBytesPerElement);
+    let v_bytes_per_elem = CFNumber::new(4i32);
 
-    let k_is_global = string(kIOSurfaceIsGlobal);
+    let k_is_global = CFString::wrap_shared(kIOSurfaceIsGlobal);
     let v_is_global = CFBoolean::true_value();
 
     io_surface::new(&core_foundation::dictionary::CFDictionary::new([
@@ -172,7 +172,7 @@ pub fn bind_surface_to_texture(context: &GraphicsContext, surface: &IOSurface, s
     // FIXME: There should be safe wrappers for this.
     unsafe {
         let native = context.native();
-        let gl_error = CGLTexImageIOSurface2D(*arc::get(&native),
+        let gl_error = CGLTexImageIOSurface2D(*native.get(),
                                               TEXTURE_RECTANGLE_ARB,
                                               RGBA as GLenum,
                                               size.width as GLsizei,
