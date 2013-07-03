@@ -12,6 +12,7 @@
 #[crate_type = "lib"];
 
 extern mod std;
+extern mod extra;
 extern mod geom;
 
 #[cfg(target_os="macos")]
