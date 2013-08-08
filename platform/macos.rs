@@ -179,7 +179,7 @@ pub fn bind_surface_to_texture(context: &GraphicsContext, surface: &IOSurface, s
                                               size.height as GLsizei,
                                               BGRA as GLenum,
                                               UNSIGNED_INT_8_8_8_8_REV,
-                                              transmute(copy surface.obj),
+                                              transmute(surface.obj.clone()),
                                               0);
         assert!(gl_error == kCGLNoError);
     }
@@ -197,7 +197,7 @@ impl ShareContext for Context {
         let context = init_cgl();
 
         // Create the surface.
-        let surface = init_surface(copy size);
+        let surface = init_surface(size.clone());
 
         // Create a framebuffer.
         let framebuffer = gl2::gen_framebuffers(1)[0];
