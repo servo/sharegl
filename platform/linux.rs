@@ -9,12 +9,10 @@
 
 use context::GraphicsContextMethods;
 
-use core::cast::transmute;
-use core::libc::{c_char, c_int, c_long, c_uint, c_ulong, c_void};
-use core::ptr::null;
-use core::ptr;
-use std::arc::ARC;
-use std::arc;
+use std::libc::{c_char, c_int, c_long, c_uint, c_ulong, c_void};
+use std::ptr::null;
+use std::ptr;
+use extra::arc::Arc;
 
 // Constants.
 
@@ -156,24 +154,17 @@ extern {
 
 fn DefaultScreen(dpy: *Display) -> c_int {
     unsafe {
-        let orig = dpy as uint;
-        let off: uint = transmute(&(*dpy).default_screen);
-        let default_screen = (*dpy).default_screen;
-        default_screen
+        (*dpy).default_screen
     }
 }
 fn RootWindow(dpy: *Display, scr: c_int) -> Window {
     unsafe {
-        let screen = ScreenOfDisplay(dpy, scr);
-        let root_window = (*ScreenOfDisplay(dpy, scr)).root;
-        root_window
+        (*ScreenOfDisplay(dpy, scr)).root
     }
 }
 fn ScreenOfDisplay(dpy: *Display, scr: c_int) -> *Screen {
     unsafe {
-        let orig = dpy as uint;
-        let off: uint = transmute(&(*dpy).screens);
-        *ptr::offset(&(*dpy).screens, scr as uint)
+        *ptr::offset(&(*dpy).screens, scr as int)
     }
 }
 
@@ -183,7 +174,7 @@ fn ScreenOfDisplay(dpy: *Display, scr: c_int) -> *Screen {
 pub struct GraphicsContext {
     priv display: *Display,
     priv pixmap: GLXPixmap,
-    priv context: ARC<GLXContext>,
+    priv context: Arc<GLXContext>,
 }
 
 impl GraphicsContext {
@@ -196,7 +187,7 @@ impl GraphicsContext {
                 None => glXCreateContext(display, visual, null(), 1),
                 Some(share_context) => {
                     let native_share_context = share_context.native();
-                    glXCreateContext(display, visual, *arc::get(&native_share_context), 1)
+                    glXCreateContext(display, visual, *native_share_context.get(), 1)
                 }
             };
 
@@ -205,7 +196,7 @@ impl GraphicsContext {
             GraphicsContext {
                 display: display,
                 pixmap: pixmap,
-                context: ARC(context),
+                context: Arc::new(context),
             }
         }
     }
@@ -235,7 +226,7 @@ impl GraphicsContext {
 impl GraphicsContextMethods<GLXContext> for GraphicsContext {
     /// Wraps the given instance of the native GLX graphics context, bumping the reference count in
     /// the process.
-    fn wrap(instance: ARC<GLXContext>) -> GraphicsContext {
+    fn wrap(instance: Arc<GLXContext>) -> GraphicsContext {
         let (display, _, pixmap) = GraphicsContext::create_display_visual_and_pixmap();
         GraphicsContext {
             display: display,
@@ -245,7 +236,7 @@ impl GraphicsContextMethods<GLXContext> for GraphicsContext {
     }
 
     /// Returns the underlying native 3D context.
-    fn native(&self) -> ARC<GLXContext> {
+    fn native(&self) -> Arc<GLXContext> {
         self.context.clone()
     }
 
@@ -265,7 +256,7 @@ impl GraphicsContextMethods<GLXContext> for GraphicsContext {
             let result = glXMakeContextCurrent(self.display,
                                                self.pixmap,
                                                self.pixmap,
-                                               *arc::get(&self.context));
+                                               *self.context.get());
             assert!(result != 0);
         }
     }

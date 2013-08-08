@@ -9,15 +9,15 @@
 
 //! A platform-independent interface to 3D graphics contexts.
 
-use extra::arc::ARC;
+use extra::arc::Arc;
 
 /// Platform-independent interface to 3D graphics contexts.
 pub trait GraphicsContextMethods<NativeContextType> {
     /// Wraps the given instance of the native 3D context, incrementing its reference count.
-    fn wrap(instance: ARC<NativeContextType>) -> Self;
+    fn wrap(instance: Arc<NativeContextType>) -> Self;
 
     /// Returns the underlying native 3D context.
-    fn native(&self) -> ARC<NativeContextType>;
+    fn native(&self) -> Arc<NativeContextType>;
 
     /// Creates a new offscreen 3D graphics context.
     fn new() -> Self;
