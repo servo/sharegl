@@ -10,8 +10,7 @@
 use base::ShareContext;
 use context::GraphicsContextMethods;
 
-use extra::arc::ARC;
-use extra::arc;
+use extra::arc::Arc;
 use geom::size::Size2D;
 use io_surface::{IOSurface, kIOSurfaceBytesPerElement, kIOSurfaceBytesPerRow};
 use io_surface::{kIOSurfaceHeight, kIOSurfaceIsGlobal, kIOSurfaceWidth};
@@ -35,7 +34,7 @@ extern {}
 
 /// Mac-specific interface to 3D graphics contexts.
 pub struct GraphicsContext {
-    cgl_context: ARC<CGLContextObj>,
+    cgl_context: Arc<CGLContextObj>,
 }
 
 impl GraphicsContext {
@@ -62,14 +61,14 @@ impl GraphicsContext {
             };
             assert!(gl_error == kCGLNoError);
 
-            GraphicsContextMethods::wrap(ARC(cgl_context))
+            GraphicsContextMethods::wrap(Arc::new(cgl_context))
         }
     }
 }
 
 impl GraphicsContextMethods<CGLContextObj> for GraphicsContext {
     /// Wraps the given instance of the native Core OpenGL graphics context.
-    fn wrap(instance: ARC<CGLContextObj>) -> GraphicsContext {
+    fn wrap(instance: Arc<CGLContextObj>) -> GraphicsContext {
         unsafe {
             GraphicsContext {
                 cgl_context: instance
@@ -78,7 +77,7 @@ impl GraphicsContextMethods<CGLContextObj> for GraphicsContext {
     }
 
     /// Returns the underlying native 3D context without modifying its reference count.
-    fn native(&self) -> ARC<CGLContextObj> {
+    fn native(&self) -> Arc<CGLContextObj> {
         self.cgl_context.clone()
     }
 
