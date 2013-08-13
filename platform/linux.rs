@@ -135,7 +135,7 @@ type Window = c_uint;                   // compatible with Drawable
 type XID = c_uint;
 type XPointer = *c_void;
 
-#[link_args="-lX11"]
+#[link_args="-lX11 -lGL"]
 #[nolink]
 extern {
     fn XOpenDisplay(n: c_int) -> *Display;
