@@ -69,10 +69,8 @@ impl GraphicsContext {
 impl GraphicsContextMethods<CGLContextObj> for GraphicsContext {
     /// Wraps the given instance of the native Core OpenGL graphics context.
     fn wrap(instance: Arc<CGLContextObj>) -> GraphicsContext {
-        unsafe {
-            GraphicsContext {
-                cgl_context: instance
-            }
+        GraphicsContext {
+            cgl_context: instance
         }
     }
 
