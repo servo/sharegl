@@ -34,5 +34,6 @@ pub mod platform;
 pub mod platform;
 
 #[cfg(target_os="windows")]
+#[cfg(target_os="android")]
 #[path="platform/dummy.rs"]
 pub mod platform;
