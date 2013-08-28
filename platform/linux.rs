@@ -179,6 +179,7 @@ pub struct GraphicsContext {
 
 impl GraphicsContext {
     // Creates a new, possibly shared, GLX context.
+	#[fixed_stack_segment]
     fn new_possibly_shared(share_context: Option<GraphicsContext>) -> GraphicsContext {
         let (display, visual, pixmap) = GraphicsContext::create_display_visual_and_pixmap();
 
@@ -201,6 +202,7 @@ impl GraphicsContext {
         }
     }
 
+	#[fixed_stack_segment]
     fn create_display_visual_and_pixmap() -> (*Display, *XVisualInfo, GLXPixmap) {
         unsafe {
             // Get a connection.
@@ -251,6 +253,7 @@ impl GraphicsContextMethods<GLXContext> for GraphicsContext {
     }
 
     /// Makes this context the current context.
+	#[fixed_stack_segment]
     fn make_current(&self) {
         unsafe {
             let result = glXMakeContextCurrent(self.display,
