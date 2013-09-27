@@ -7,20 +7,16 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#[link(name = "sharegl",
-	   vers = "0.1")];
-#[crate_type = "lib"];
-
 extern mod std;
 extern mod extra;
-extern mod geom;
+extern mod geom = "rust-geom";
 
 #[cfg(target_os="macos")]
-extern mod core_foundation;
+extern mod core_foundation = "rust-core-foundation";
 #[cfg(target_os="macos")]
-extern mod io_surface;
+extern mod io_surface = "rust-io-surface";
 #[cfg(target_os="macos")]
-extern mod opengles;
+extern mod opengles = "rust-opengles";
 
 pub mod base;
 pub mod context;
