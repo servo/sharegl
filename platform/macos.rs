@@ -14,7 +14,6 @@ use extra::arc::Arc;
 use geom::size::Size2D;
 use io_surface::{IOSurface, kIOSurfaceBytesPerElement, kIOSurfaceBytesPerRow};
 use io_surface::{kIOSurfaceHeight, kIOSurfaceIsGlobal, kIOSurfaceWidth};
-use io_surface::IOSurfaceMethods;
 use opengles::cgl::{CGLChoosePixelFormat, CGLContextObj, CGLCreateContext};
 use opengles::cgl::{CGLSetCurrentContext, CGLTexImageIOSurface2D, kCGLNoError, kCGLPFACompliant};
 use opengles::cgl::{kCGLPFADoubleBuffer};
@@ -25,6 +24,7 @@ use opengles::gl2::{TEXTURE_RECTANGLE_ARB, TEXTURE_WRAP_S, TEXTURE_WRAP_T};
 use opengles::gl2::{UNSIGNED_INT_8_8_8_8_REV};
 use opengles::gl2;
 use std::cast::transmute;
+use std::cast;
 use std::ptr::{null, to_unsafe_ptr};
 
 // FIXME: This is not good.
@@ -179,7 +179,7 @@ pub fn bind_surface_to_texture(context: &GraphicsContext, surface: &IOSurface, s
                                               size.height as GLsizei,
                                               BGRA as GLenum,
                                               UNSIGNED_INT_8_8_8_8_REV,
-                                              transmute(surface.obj.clone()),
+                                              cast::transmute_copy(&surface.contents),
                                               0);
         assert!(gl_error == kCGLNoError);
     }
