@@ -216,7 +216,7 @@ impl GraphicsContext {
             let pixmap = XCreatePixmap(display, root_window, 10, 10, 24);
             let glx_pixmap = glXCreateGLXPixmap(display, visual, pixmap);
 
-            debug!("XCreatePixmap returned %?, glXCreateGLXPixmap returned %?",
+            debug!("XCreatePixmap returned {}, glXCreateGLXPixmap returned {}",
                    pixmap,
                    glx_pixmap);
 
