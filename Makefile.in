@@ -16,7 +16,7 @@ all:	libsharegl.dummy
 	$(CC) $< -o $@ -c $(CFLAGS)
 
 libsharegl.dummy: sharegl.rc $(RUST_SRC)
-	$(RUSTC) $(RUSTFLAGS) $< -o $@
+	$(RUSTC) $(RUSTFLAGS) $< --lib --out-dir .
 	touch $@
 
 sharegl-test: sharegl.rc $(RUST_SRC)
