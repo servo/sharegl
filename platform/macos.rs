@@ -23,9 +23,9 @@ use opengles::gl2::{NEAREST, RGBA, TEXTURE_MAG_FILTER, TEXTURE_MIN_FILTER};
 use opengles::gl2::{TEXTURE_RECTANGLE_ARB, TEXTURE_WRAP_S, TEXTURE_WRAP_T};
 use opengles::gl2::{UNSIGNED_INT_8_8_8_8_REV};
 use opengles::gl2;
-use std::cast::transmute;
+
 use std::cast;
-use std::ptr::{null, to_unsafe_ptr};
+use std::ptr;
 
 // FIXME: This is not good.
 #[link_args="-framework IOSurface -framework CoreFoundation"]
@@ -44,17 +44,17 @@ impl GraphicsContext {
         unsafe {
             // Choose a pixel format.
             let attributes = [ kCGLPFADoubleBuffer, kCGLPFACompliant, 0 ];
-            let pixel_format = null();
-            let pixel_format_count = 1;
-            let gl_error = CGLChoosePixelFormat(transmute(&attributes[0]),
-                                                to_unsafe_ptr(&pixel_format),
-                                                to_unsafe_ptr(&pixel_format_count));
+            let mut pixel_format = ptr::null();
+            let mut pixel_format_count = 1;
+            let gl_error = CGLChoosePixelFormat(cast::transmute(&attributes[0]),
+                                                &mut pixel_format,
+                                                &mut pixel_format_count);
             assert!(gl_error == kCGLNoError);
 
             // Create the context.
-            let cgl_context = null();
+            let cgl_context = ptr::null();
             let gl_error = match share_context {
-                None => CGLCreateContext(pixel_format, null(), &cgl_context),
+                None => CGLCreateContext(pixel_format, ptr::null(), &cgl_context),
                 Some(ref share_context) => {
                     let native = share_context.native();
                     CGLCreateContext(pixel_format, *native.get(), &cgl_context)
@@ -123,35 +123,38 @@ pub fn init_cgl() -> GraphicsContext {
 
 pub fn init_surface(size: Size2D<int>) -> IOSurface {
     use core_foundation::boolean::CFBoolean;
-    use core_foundation::number::CFNumber;
     use core_foundation::string::CFString;
-    use core_foundation;
+    use core_foundation::number::CFNumber;
+    use core_foundation::dictionary::CFDictionary;
+    use core_foundation::base::{CFType, TCFType};
     use io_surface;
 
     // TODO: dictionary constructor should be less ridiculous.
     // Or, we could add bindings for mutable dictionaries.
-    let k_width = CFString::wrap_shared(kIOSurfaceWidth);
-    let v_width = CFNumber::new(size.width as i32);
+    let k_width: CFString = unsafe { TCFType::wrap_under_get_rule(kIOSurfaceWidth) };
+    let v_width: CFNumber = FromPrimitive::from_i32(size.width as i32).unwrap();
 
-    let k_height = CFString::wrap_shared(kIOSurfaceHeight);
-    let v_height = CFNumber::new(size.height as i32);
+    let k_height: CFString = unsafe { TCFType::wrap_under_get_rule(kIOSurfaceHeight) };
+    let v_height: CFNumber = FromPrimitive::from_i32(size.height as i32).unwrap();
 
-    let k_bytes_per_row = CFString::wrap_shared(kIOSurfaceBytesPerRow);
-    let v_bytes_per_row = CFNumber::new(size.width as i32 * 4);
+    let k_bytes_per_row: CFString = unsafe { TCFType::wrap_under_get_rule(kIOSurfaceBytesPerRow) };
+    let v_bytes_per_row: CFNumber = FromPrimitive::from_i32(size.width as i32 * 4).unwrap();
 
-    let k_bytes_per_elem = CFString::wrap_shared(kIOSurfaceBytesPerElement);
-    let v_bytes_per_elem = CFNumber::new(4i32);
+    let k_bytes_per_elem: CFString = unsafe { TCFType::wrap_under_get_rule(kIOSurfaceBytesPerElement) };
+    let v_bytes_per_elem: CFNumber = FromPrimitive::from_i32(4i32).unwrap();
 
-    let k_is_global = CFString::wrap_shared(kIOSurfaceIsGlobal);
+    let k_is_global: CFString = unsafe { TCFType::wrap_under_get_rule(kIOSurfaceIsGlobal) };
     let v_is_global = CFBoolean::true_value();
 
-    io_surface::new(&core_foundation::dictionary::CFDictionary::new([
-        (*k_width.contents.borrow_ref(),          *v_width.contents.borrow_type_ref()),
-        (*k_height.contents.borrow_ref(),         *v_height.contents.borrow_type_ref()),
-        (*k_bytes_per_row.contents.borrow_ref(),  *v_bytes_per_row.contents.borrow_type_ref()),
-        (*k_bytes_per_elem.contents.borrow_ref(), *v_bytes_per_elem.contents.borrow_type_ref()),
-        (*k_is_global.contents.borrow_ref(),      *v_is_global.contents.borrow_type_ref()),
-    ]))
+    let pairs: ~[(CFType, CFType)] = ~[
+        (k_width.as_CFType(), v_width.as_CFType()),
+        (k_height.as_CFType(), v_height.as_CFType()),
+        (k_bytes_per_row.as_CFType(), v_bytes_per_row.as_CFType()),
+        (k_bytes_per_elem.as_CFType(), v_bytes_per_elem.as_CFType()),
+        (k_is_global.as_CFType(), v_is_global.as_CFType()),
+    ];
+
+    io_surface::new(&CFDictionary::from_CFType_pairs(pairs))
 }
 
 pub fn init_texture() -> GLuint {
@@ -169,6 +172,7 @@ pub fn init_texture() -> GLuint {
 // Assumes the texture is already bound via gl2::bind_texture().
 #[fixed_stack_segment]
 pub fn bind_surface_to_texture(context: &GraphicsContext, surface: &IOSurface, size: Size2D<int>) {
+    use core_foundation::base::TCFType;
     // FIXME: There should be safe wrappers for this.
     unsafe {
         let native = context.native();
@@ -179,7 +183,7 @@ pub fn bind_surface_to_texture(context: &GraphicsContext, surface: &IOSurface, s
                                               size.height as GLsizei,
                                               BGRA as GLenum,
                                               UNSIGNED_INT_8_8_8_8_REV,
-                                              cast::transmute_copy(&surface.contents),
+                                              cast::transmute(surface.as_concrete_TypeRef()),
                                               0);
         assert!(gl_error == kCGLNoError);
     }
