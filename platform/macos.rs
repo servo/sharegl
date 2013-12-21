@@ -27,11 +27,6 @@ use opengles::gl2;
 use std::cast;
 use std::ptr;
 
-// FIXME: This is not good.
-#[link_args="-framework IOSurface -framework CoreFoundation"]
-#[nolink]
-extern {}
-
 /// Mac-specific interface to 3D graphics contexts.
 pub struct GraphicsContext {
     cgl_context: Arc<CGLContextObj>,
@@ -39,7 +34,6 @@ pub struct GraphicsContext {
 
 impl GraphicsContext {
     /// Returns a new context, possibly shared with another context.
-    #[fixed_stack_segment]
     fn new_possibly_shared(share_context: Option<GraphicsContext>) -> GraphicsContext {
         unsafe {
             // Choose a pixel format.
@@ -91,7 +85,6 @@ impl GraphicsContextMethods<CGLContextObj> for GraphicsContext {
     }
 
     /// Makes this context the current context.
-    #[fixed_stack_segment]
     fn make_current(&self) {
         unsafe {
             let gl_error = CGLSetCurrentContext(*self.cgl_context.get());
@@ -170,7 +163,6 @@ pub fn init_texture() -> GLuint {
 }
 
 // Assumes the texture is already bound via gl2::bind_texture().
-#[fixed_stack_segment]
 pub fn bind_surface_to_texture(context: &GraphicsContext, surface: &IOSurface, size: Size2D<int>) {
     use core_foundation::base::TCFType;
     // FIXME: There should be safe wrappers for this.
