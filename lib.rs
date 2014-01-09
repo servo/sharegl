@@ -7,7 +7,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#[link(name = "sharegl", vers = "0.1")];
+#[crate_id = "github.com/mozilla-servo/sharegl#0.1"];
 
 extern mod std;
 extern mod extra;
