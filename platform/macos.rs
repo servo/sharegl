@@ -10,7 +10,7 @@
 use base::ShareContext;
 use context::GraphicsContextMethods;
 
-use extra::arc::Arc;
+use sync::Arc;
 use geom::size::Size2D;
 use io_surface::{IOSurface, kIOSurfaceBytesPerElement, kIOSurfaceBytesPerRow};
 use io_surface::{kIOSurfaceHeight, kIOSurfaceIsGlobal, kIOSurfaceWidth};

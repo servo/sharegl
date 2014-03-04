@@ -9,16 +9,17 @@
 
 #[crate_id = "github.com/mozilla-servo/sharegl#0.1"];
 
-extern mod std;
-extern mod extra;
-extern mod geom;
+extern crate std;
+extern crate sync;
+extern crate extra;
+extern crate geom;
 
 #[cfg(target_os="macos")]
-extern mod core_foundation;
+extern crate core_foundation;
 #[cfg(target_os="macos")]
-extern mod io_surface;
+extern crate io_surface;
 #[cfg(target_os="macos")]
-extern mod opengles;
+extern crate opengles;
 
 pub mod base;
 pub mod context;

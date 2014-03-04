@@ -12,7 +12,7 @@ use context::GraphicsContextMethods;
 use std::libc::{c_char, c_int, c_long, c_uint, c_ulong, c_void};
 use std::ptr::null;
 use std::ptr;
-use extra::arc::Arc;
+use sync::Arc;
 
 // Constants.
 
@@ -164,7 +164,7 @@ fn RootWindow(dpy: *Display, scr: c_int) -> Window {
 }
 fn ScreenOfDisplay(dpy: *Display, scr: c_int) -> *Screen {
     unsafe {
-        *ptr::offset(&(*dpy).screens, scr as int)
+        (&(*dpy).screens).offset(scr as int)
     }
 }
 
