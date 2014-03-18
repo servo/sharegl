@@ -9,7 +9,7 @@
 
 //! A platform-independent interface to 3D graphics contexts.
 
-use extra::arc::Arc;
+use sync::Arc;
 
 /// Platform-independent interface to 3D graphics contexts.
 pub trait GraphicsContextMethods<NativeContextType> {

@@ -11,15 +11,14 @@ use context::GraphicsContextMethods;
 
 use std::libc::{c_char, c_int, c_long, c_uint, c_ulong, c_void};
 use std::ptr::null;
-use std::ptr;
-use extra::arc::Arc;
+use sync::Arc;
 
 // Constants.
 
 static GLX_RGBA: c_int = 4;
-static GLX_RED_SIZE: c_int = 8;
+/*static GLX_RED_SIZE: c_int = 8;
 static GLX_GREEN_SIZE: c_int = 9;
-static GLX_BLUE_SIZE: c_int = 10;
+static GLX_BLUE_SIZE: c_int = 10;*/
 static GLX_DEPTH_SIZE: c_int = 12;
 
 static ATTRIBUTES: [c_int, ..4] = [
@@ -164,7 +163,7 @@ fn RootWindow(dpy: *Display, scr: c_int) -> Window {
 }
 fn ScreenOfDisplay(dpy: *Display, scr: c_int) -> *Screen {
     unsafe {
-        *ptr::offset(&(*dpy).screens, scr as int)
+        (&(*dpy).screens).offset(scr as int)
     }
 }
 
