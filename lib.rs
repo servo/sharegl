@@ -9,6 +9,9 @@
 
 #[crate_id = "github.com/mozilla-servo/sharegl#0.1"];
 
+#[feature(phase)];
+#[phase(syntax, link)] extern crate log;
+
 extern crate std;
 extern crate sync;
 extern crate geom;
