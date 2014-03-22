@@ -11,7 +11,6 @@
 
 extern crate std;
 extern crate sync;
-extern crate extra;
 extern crate geom;
 
 #[cfg(target_os="macos")]
