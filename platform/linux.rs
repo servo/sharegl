@@ -171,9 +171,9 @@ fn ScreenOfDisplay(dpy: *Display, scr: c_int) -> *Screen {
 
 /// Linux-specific interface to 3D graphics contexts.
 pub struct GraphicsContext {
-    priv display: *Display,
-    priv pixmap: GLXPixmap,
-    priv context: Arc<GLXContext>,
+    display: *Display,
+    pixmap: GLXPixmap,
+    context: Arc<GLXContext>,
 }
 
 impl GraphicsContext {
