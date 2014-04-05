@@ -171,9 +171,9 @@ fn ScreenOfDisplay(dpy: *Display, scr: c_int) -> *Screen {
 
 /// Linux-specific interface to 3D graphics contexts.
 pub struct GraphicsContext {
-    priv display: *Display,
-    priv pixmap: GLXPixmap,
-    priv context: Arc<GLXContext>,
+    display: *Display,
+    pixmap: GLXPixmap,
+    context: Arc<GLXContext>,
 }
 
 impl GraphicsContext {
@@ -186,7 +186,7 @@ impl GraphicsContext {
                 None => glXCreateContext(display, visual, null(), 1),
                 Some(share_context) => {
                     let native_share_context = share_context.native();
-                    glXCreateContext(display, visual, *native_share_context.get(), 1)
+                    glXCreateContext(display, visual, *native_share_context, 1)
                 }
             };
 
@@ -255,7 +255,7 @@ impl GraphicsContextMethods<GLXContext> for GraphicsContext {
             let result = glXMakeContextCurrent(self.display,
                                                self.pixmap,
                                                self.pixmap,
-                                               *self.context.get());
+                                               *self.context);
             assert!(result != 0);
         }
     }
