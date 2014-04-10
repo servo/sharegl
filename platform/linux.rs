@@ -9,7 +9,7 @@
 
 use context::GraphicsContextMethods;
 
-use std::libc::{c_char, c_int, c_long, c_uint, c_ulong, c_void};
+use libc::{c_char, c_int, c_long, c_uint, c_ulong, c_void};
 use std::ptr::null;
 use sync::Arc;
 
