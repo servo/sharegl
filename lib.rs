@@ -7,17 +7,18 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#[crate_id = "github.com/mozilla-servo/sharegl#0.1"];
-#[crate_type = "lib"];
-#[crate_type = "dylib"];
-#[crate_type = "rlib"];
+#![crate_id = "github.com/mozilla-servo/sharegl#0.1"]
+#![crate_type = "lib"]
+#![crate_type = "dylib"]
+#![crate_type = "rlib"]
 
-#[feature(phase)];
-#[phase(syntax, link)] extern crate log;
+#![feature(phase)]
 
+extern crate geom;
+#[phase(syntax, link)]
+extern crate log;
 extern crate std;
 extern crate sync;
-extern crate geom;
 
 #[cfg(target_os="macos")]
 extern crate core_foundation;
