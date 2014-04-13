@@ -51,7 +51,7 @@ impl GraphicsContext {
                 None => CGLCreateContext(pixel_format, ptr::null(), &cgl_context),
                 Some(ref share_context) => {
                     let native = share_context.native();
-                    CGLCreateContext(pixel_format, *native.get(), &cgl_context)
+                    CGLCreateContext(pixel_format, *native, &cgl_context)
                 }
             };
             assert!(gl_error == kCGLNoError);
@@ -87,7 +87,7 @@ impl GraphicsContextMethods<CGLContextObj> for GraphicsContext {
     /// Makes this context the current context.
     fn make_current(&self) {
         unsafe {
-            let gl_error = CGLSetCurrentContext(*self.cgl_context.get());
+            let gl_error = CGLSetCurrentContext(*self.cgl_context);
             assert!(gl_error == kCGLNoError)
         }
     }
@@ -168,7 +168,7 @@ pub fn bind_surface_to_texture(context: &GraphicsContext, surface: &IOSurface, s
     // FIXME: There should be safe wrappers for this.
     unsafe {
         let native = context.native();
-        let gl_error = CGLTexImageIOSurface2D(*native.get(),
+        let gl_error = CGLTexImageIOSurface2D(*native,
                                               TEXTURE_RECTANGLE_ARB,
                                               RGBA as GLenum,
                                               size.width as GLsizei,
