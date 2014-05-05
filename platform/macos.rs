@@ -153,7 +153,7 @@ pub fn init_surface(size: Size2D<int>) -> IOSurface {
 pub fn init_texture() -> GLuint {
     gl2::enable(TEXTURE_RECTANGLE_ARB);
 
-    let texture = gl2::gen_textures(1)[0];
+    let texture = *gl2::gen_textures(1).get(0);
     gl2::bind_texture(TEXTURE_RECTANGLE_ARB, texture);
     gl2::tex_parameter_i(TEXTURE_RECTANGLE_ARB, TEXTURE_WRAP_S, CLAMP_TO_EDGE as GLint);
     gl2::tex_parameter_i(TEXTURE_RECTANGLE_ARB, TEXTURE_WRAP_T, CLAMP_TO_EDGE as GLint);
@@ -196,7 +196,7 @@ impl ShareContext for Context {
         let surface = init_surface(size.clone());
 
         // Create a framebuffer.
-        let framebuffer = gl2::gen_framebuffers(1)[0];
+        let framebuffer = *gl2::gen_framebuffers(1).get(0);
         gl2::bind_framebuffer(FRAMEBUFFER, framebuffer);
 
         // Create and bind to the texture.
