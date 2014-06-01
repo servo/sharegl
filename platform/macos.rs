@@ -24,7 +24,7 @@ use opengles::gl2::{TEXTURE_RECTANGLE_ARB, TEXTURE_WRAP_S, TEXTURE_WRAP_T};
 use opengles::gl2::{UNSIGNED_INT_8_8_8_8_REV};
 use opengles::gl2;
 
-use std::cast;
+use std::mem;
 use std::ptr;
 
 /// Mac-specific interface to 3D graphics contexts.
@@ -40,7 +40,7 @@ impl GraphicsContext {
             let attributes = [ kCGLPFADoubleBuffer, kCGLPFACompliant, 0 ];
             let mut pixel_format = ptr::null();
             let mut pixel_format_count = 1;
-            let gl_error = CGLChoosePixelFormat(cast::transmute(&attributes[0]),
+            let gl_error = CGLChoosePixelFormat(mem::transmute(&attributes[0]),
                                                 &mut pixel_format,
                                                 &mut pixel_format_count);
             assert!(gl_error == kCGLNoError);
@@ -175,7 +175,7 @@ pub fn bind_surface_to_texture(context: &GraphicsContext, surface: &IOSurface, s
                                               size.height as GLsizei,
                                               BGRA as GLenum,
                                               UNSIGNED_INT_8_8_8_8_REV,
-                                              cast::transmute(surface.as_concrete_TypeRef()),
+                                              mem::transmute(surface.as_concrete_TypeRef()),
                                               0);
         assert!(gl_error == kCGLNoError);
     }
