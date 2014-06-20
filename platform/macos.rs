@@ -139,13 +139,13 @@ pub fn init_surface(size: Size2D<int>) -> IOSurface {
     let k_is_global: CFString = unsafe { TCFType::wrap_under_get_rule(kIOSurfaceIsGlobal) };
     let v_is_global = CFBoolean::true_value();
 
-    let pairs: ~[(CFType, CFType)] = ~[
+    let pairs: Vec<(CFType, CFType)> = vec!(
         (k_width.as_CFType(), v_width.as_CFType()),
         (k_height.as_CFType(), v_height.as_CFType()),
         (k_bytes_per_row.as_CFType(), v_bytes_per_row.as_CFType()),
         (k_bytes_per_elem.as_CFType(), v_bytes_per_elem.as_CFType()),
         (k_is_global.as_CFType(), v_is_global.as_CFType()),
-    ];
+    );
 
     io_surface::new(&CFDictionary::from_CFType_pairs(pairs))
 }
