@@ -147,7 +147,7 @@ pub fn init_surface(size: Size2D<int>) -> IOSurface {
         (k_is_global.as_CFType(), v_is_global.as_CFType()),
     );
 
-    io_surface::new(&CFDictionary::from_CFType_pairs(pairs))
+    io_surface::new(&CFDictionary::from_CFType_pairs(pairs.as_slice()))
 }
 
 pub fn init_texture() -> GLuint {
