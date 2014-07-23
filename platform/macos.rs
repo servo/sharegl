@@ -38,7 +38,7 @@ impl GraphicsContext {
         unsafe {
             // Choose a pixel format.
             let attributes = [ kCGLPFADoubleBuffer, kCGLPFACompliant, 0 ];
-            let mut pixel_format = ptr::null();
+            let mut pixel_format = ptr::mut_null();
             let mut pixel_format_count = 1;
             let gl_error = CGLChoosePixelFormat(mem::transmute(&attributes[0]),
                                                 &mut pixel_format,
@@ -46,12 +46,12 @@ impl GraphicsContext {
             assert!(gl_error == kCGLNoError);
 
             // Create the context.
-            let cgl_context = ptr::null();
+            let mut cgl_context = ptr::mut_null();
             let gl_error = match share_context {
-                None => CGLCreateContext(pixel_format, ptr::null(), &cgl_context),
+                None => CGLCreateContext(pixel_format, ptr::mut_null(), &mut cgl_context),
                 Some(ref share_context) => {
                     let native = share_context.native();
-                    CGLCreateContext(pixel_format, *native, &cgl_context)
+                    CGLCreateContext(pixel_format, *native, &mut cgl_context)
                 }
             };
             assert!(gl_error == kCGLNoError);
@@ -101,8 +101,8 @@ impl Clone for GraphicsContext {
 
 pub struct Context {
     surface: IOSurface,
-    framebuffer: GLuint,
-    texture: GLuint
+    _framebuffer: GLuint,
+    _texture: GLuint
     
     // FIXME: Needs drop.
 }
@@ -208,8 +208,8 @@ impl ShareContext for Context {
 
         Context {
             surface: surface,
-            framebuffer: framebuffer,
-            texture: texture
+            _framebuffer: framebuffer,
+            _texture: texture
         }
     }
 
