@@ -7,12 +7,13 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#![crate_id = "github.com/mozilla-servo/sharegl#0.1"]
-#![crate_type = "lib"]
-#![crate_type = "dylib"]
+#![crate_name = "sharegl"]
 #![crate_type = "rlib"]
 
 #![feature(phase)]
+
+#![allow(non_snake_case_functions)]
+
 
 extern crate geom;
 extern crate libc;
