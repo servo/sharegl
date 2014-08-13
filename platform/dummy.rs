@@ -13,13 +13,13 @@ use base::ShareContext;
 pub type Context = DummyContext;
 
 struct DummyContext {
-    unused: int
+    _unused: int
 }
 
 impl ShareContext for DummyContext {
     fn new(_size: Size2D<int>) -> DummyContext {
         DummyContext {
-            unused: 0
+            _unused: 0
         }
     }
 
